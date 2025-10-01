@@ -340,7 +340,7 @@ export default function Home() {
               Our Services
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From custom cakes to baking workshops, we offer a full range of sweet services to make your special moments unforgettable.
+              From custom cakes to baking workshops, i offer a full range of sweet services to make your special moments unforgettable.
             </p>
           </div>
 
