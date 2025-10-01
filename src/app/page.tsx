@@ -401,7 +401,7 @@ export default function Home() {
                 </div>
                 <h3 className="font-display text-2xl font-bold text-gray-800">Baking 101 Workshops</h3>
                 <p className="text-gray-600">
-                  Learn the basics of baking in our fun and educational summer workshops.
+                  Learn the basics of baking in my fun and educational summer workshops.
                 </p>
                 <a
                   href="https://docs.google.com/forms/d/e/1FAIpQLSdgW8dm3mvVcmKLbzbbAkX8_tjh7Cm33g8jBLXqC5Mso87EUw/viewform"
