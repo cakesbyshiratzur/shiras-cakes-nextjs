@@ -4,17 +4,26 @@ export const dynamic = 'force-dynamic';
 
 type Review = { name: string; review: string; rating?: number };
 
+// Minimal GViz response types
+type GvizCell = { v?: unknown };
+type GvizRow = { c?: GvizCell[] };
+type GvizCol = { label?: unknown };
+type GvizTable = { cols?: GvizCol[]; rows?: GvizRow[] };
+type GvizResponse = { table?: GvizTable };
+
 // In-memory cache (per server instance)
 const TTL_MS = 5 * 60 * 1000; // 5 minutes
 let cachedPayload: { reviews: Review[]; updatedAt: string; error?: string } | null = null;
 let cachedAt = 0;
 
-function parseGvizJson(text: string): any {
-  if (!/setResponse\(/.test(text)) {
+function parseGvizJson(text: string): GvizResponse {
+  const regex = /setResponse\(([\s\S]*?)\);?\s*$/;
+  const match = regex.exec(text);
+  if (!match || !match[1]) {
     throw new Error('Invalid GViz payload');
   }
-  const jsonStr = text.replace(/^.*setResponse\(/, '').replace(/\);\s*$/, '');
-  return JSON.parse(jsonStr);
+  const inner = match[1];
+  return JSON.parse(inner) as GvizResponse;
 }
 
 function clampRating(val: number | undefined): number | undefined {
@@ -35,24 +44,32 @@ function looksLikeCode(input: string): boolean {
   return input.length > 800 || patterns.some((p) => p.test(input));
 }
 
-function mapRowsToReviews(data: any): Review[] {
-  const cols: string[] = (data?.table?.cols || []).map((c: any) => (c?.label || '').toString().toLowerCase());
-  const rows = data?.table?.rows || [];
+function mapRowsToReviews(data: GvizResponse): Review[] {
+  const cols: string[] = (data?.table?.cols || []).map((c: GvizCol) => (c?.label || '').toString().toLowerCase());
+  const rows: GvizRow[] = data?.table?.rows || [];
   const findIndex = (c: string[]) => cols.findIndex((lbl) => c.some((n) => lbl.includes(n)));
   const nameIdx = findIndex(['name', 'customer', 'author']);
   const reviewIdx = findIndex(['review', 'testimonial', 'feedback', 'comment', 'message']);
   const ratingIdx = findIndex(['rating', 'stars', 'score']);
 
   const mapped: Review[] = rows
-    .map((r: any) => {
-      const cells = r?.c || [];
+    .map((r: GvizRow) => {
+      const cells: GvizCell[] = r?.c || [];
       const nameVal = (nameIdx >= 0 ? cells[nameIdx]?.v : cells[0]?.v) ?? '';
       const reviewVal = (reviewIdx >= 0 ? cells[reviewIdx]?.v : cells[1]?.v) ?? '';
-      const ratingRaw = ratingIdx >= 0 ? cells[ratingIdx]?.v : undefined;
+      const ratingRaw: unknown = ratingIdx >= 0 ? cells[ratingIdx]?.v : undefined;
       const name = sanitizeText(String(nameVal));
       const review = sanitizeText(String(reviewVal));
-      const ratingNum = typeof ratingRaw === 'number' ? ratingRaw : parseFloat(ratingRaw);
-      return { name, review, rating: clampRating(Number.isFinite(ratingNum) ? ratingNum : undefined) };
+      let ratingNum: number | undefined;
+      if (typeof ratingRaw === 'number') {
+        ratingNum = ratingRaw;
+      } else if (typeof ratingRaw === 'string') {
+        const parsed = parseFloat(ratingRaw);
+        ratingNum = Number.isFinite(parsed) ? parsed : undefined;
+      } else {
+        ratingNum = undefined;
+      }
+      return { name, review, rating: clampRating(ratingNum) };
     })
     .filter((r: Review) => r.name && r.review && !looksLikeCode(r.review))
     .slice(0, 24);
@@ -82,8 +99,12 @@ export async function GET(request: Request) {
   try {
     const res = await fetch(gvizByGid, { cache: 'no-store' });
     const text = await res.text();
+    // Basic debug logs (visible in server logs)
+    console.log('[reviews] fetched', { ok: res.ok, status: res.status, length: text.length });
     const data = parseGvizJson(text);
+    console.log('[reviews] parsed');
     const reviews = mapRowsToReviews(data);
+    console.log('[reviews] mapped', { count: reviews.length });
     cachedPayload = { reviews, updatedAt: new Date().toISOString() };
     cachedAt = now;
     return NextResponse.json(cachedPayload, {
@@ -93,7 +114,8 @@ export async function GET(request: Request) {
         'X-Reviews-Cache': 'MISS',
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    console.error('[reviews] error', err);
     if (cachedPayload) {
       // Serve stale cache if available
       return NextResponse.json(cachedPayload, {
@@ -104,7 +126,8 @@ export async function GET(request: Request) {
         },
       });
     }
-    return NextResponse.json({ reviews: [], error: err?.message || 'Failed to load reviews' }, {
+    const message = err instanceof Error ? err.message : 'Failed to load reviews';
+    return NextResponse.json({ reviews: [], error: message }, {
       status: 200,
       headers: {
         'Cache-Control': 'no-store',
