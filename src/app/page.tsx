@@ -244,8 +244,8 @@ export default function Home() {
                   <span className="block text-pink-500">Sweeter</span>
                 </h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Custom cakes, cupcakes, and cookies designed with love. 
-                  Professional baking workshops to inspire your inner baker.
+                  Made-to-order cakes, cupcakes, and cookies crafted just for you. 
+                  Discover my group 101 baking workshops for every skill level.
                 </p>
               </div>
               
