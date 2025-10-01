@@ -240,8 +240,8 @@ export default function Home() {
             <div className="space-y-8">
               <div className="space-y-4">
                 <h1 className="font-display text-5xl lg:text-7xl font-bold text-gray-800 leading-tight">
-                  Sweet Dreams
-                  <span className="block text-pink-500">Made Real</span>
+                  Making Moments
+                  <span className="block text-pink-500">Sweeter</span>
                 </h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
                   Custom cakes, cupcakes, and cookies designed with love. 
