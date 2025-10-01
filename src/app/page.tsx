@@ -337,7 +337,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
-              Our Services
+              My Services
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               From custom cakes to baking workshops, i offer a full range of sweet services to make your special moments unforgettable.
