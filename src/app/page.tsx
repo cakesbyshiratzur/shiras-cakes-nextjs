@@ -277,7 +277,7 @@ export default function Home() {
             <div className="relative">
               <div className="relative z-10">
         <Image
-                  src="/images/0.jpg"
+                  src="/0.jpg"
                   alt="Beautiful custom cake"
                   width={600}
                   height={600}
