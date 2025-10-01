@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState<boolean>(false);
   type Review = { name: string; review: string; rating?: number };
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isReviewsLoading, setIsReviewsLoading] = useState<boolean>(true);
@@ -98,8 +97,9 @@ export default function Home() {
           review: r.review.length > 600 ? r.review.slice(0, 600).trim() + '…' : r.review,
         }));
         setReviews(trimmed);
-      } catch (e: any) {
-        setReviewsError(e?.message || 'Failed to load reviews');
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'Failed to load reviews';
+        setReviewsError(message);
       } finally {
         setIsReviewsLoading(false);
       }
@@ -160,6 +160,12 @@ export default function Home() {
                 Gallery
               </button>
               <button
+                onClick={() => scrollToSection('reviews')}
+                className="text-gray-700 hover:text-pink-500 transition-colors"
+              >
+                Reviews
+              </button>
+              <button
                 onClick={() => scrollToSection('contact')}
                 className="text-gray-700 hover:text-pink-500 transition-colors"
               >
@@ -207,6 +213,12 @@ export default function Home() {
                   className="block px-3 py-2 text-gray-700 hover:text-pink-500"
                 >
                   Gallery
+                </button>
+                <button
+                  onClick={() => scrollToSection('reviews')}
+                  className="block px-3 py-2 text-gray-700 hover:text-pink-500"
+                >
+                  Reviews
                 </button>
                 <button
                   onClick={() => scrollToSection('contact')}
@@ -500,6 +512,76 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Reviews Section */}
+      <section id="reviews" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
+              Customer Reviews
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+              Please share your feedback about your experience with Shira&apos;s Cakes.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLScPp0i5fmky2jCsq7ktJWUGWS742WJkuxoAwNfAbBnWHvjrEg/viewform?usp=header"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                Leave a Review
+              </a>
+            </div>
+          </div>
+
+          {/* Reviews Display */}
+          {isReviewsLoading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+              <p className="mt-4 text-gray-600">Loading reviews...</p>
+            </div>
+          ) : reviewsError ? (
+            <div className="text-center py-12">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+                <p className="text-red-600">Unable to load reviews at this time.</p>
+                <p className="text-sm text-red-500 mt-2">{reviewsError}</p>
+              </div>
+            </div>
+          ) : reviews.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {reviews.slice(0, 6).map((review, index) => (
+                <div key={index} className="bg-pink-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <div className="flex items-center mb-4">
+                    {review.rating && (
+                      <div className="flex text-yellow-400 mr-3">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <svg
+                            key={i}
+                            className={`w-5 h-5 ${i < review.rating! ? 'fill-current' : 'text-gray-300'}`}
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                    )}
+                    <h4 className="font-semibold text-gray-800">{review.name}</h4>
+                  </div>
+                  <p className="text-gray-600 leading-relaxed">&ldquo;{review.review}&rdquo;</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
+                <p className="text-gray-600">No reviews available yet.</p>
+                <p className="text-sm text-gray-500 mt-2">Be the first to share your experience!</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Contact Section */}
       <section id="contact" className="py-20 bg-gradient-to-br from-pink-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -524,3 +606,49 @@ export default function Home() {
                 <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9A5.5 5.5 0 0 1 16.5 22h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2.2A2.8 2.8 0 1 0 12 16.8 2.8 2.8 0 0 0 12 9.2zm5.25-1.7a1.05 1.05 0 1 1 0 2.1 1.05 1.05 0 0 1 0-2.1z" />
                 </svg>
+              </div>
+              <div className="mt-2">
+                <p className="font-medium text-gray-800">Instagram</p>
+                <p className="text-sm text-gray-500">@shirascakes</p>
+              </div>
+            </a>
+            {/* Facebook */}
+            <a
+              href="https://www.facebook.com/cakesbyshira"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-center group"
+            >
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5v-2c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/>
+                </svg>
+              </div>
+              <div className="mt-2">
+                <p className="font-medium text-gray-800">Facebook</p>
+                <p className="text-sm text-gray-500">/cakesbyshira</p>
+              </div>
+            </a>
+            {/* WhatsApp */}
+            <a
+              href="https://wa.me/12146776273"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-center group"
+            >
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.52 3.48A11.77 11.77 0 0 0 12 0C5.37 0 0 5.37 0 12c0 2.1.55 4.1 1.6 5.9L0 24l6.3-1.65a11.9 11.9 0 0 0 5.7 1.45C18.63 23.8 24 18.43 24 11.8c0-3.14-1.22-6.08-3.48-8.32zM12 21.3c-1.9 0-3.7-.5-5.3-1.5l-.4-.2-3.7 1 1-3.6-.2-.4A9.3 9.3 0 0 1 2.7 12c0-5.2 4.2-9.3 9.3-9.3 2.5 0 4.8 1 6.6 2.7a9.2 9.2 0 0 1 2.7 6.6c0 5.1-4.2 9.3-9.3 9.3zm5.4-7.1c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.2s-.8.9-1 .9c-.1 0-.3 0-.5-.1-.3-.1-1.2-.4-2.3-1.4-.8-.7-1.4-1.6-1.5-1.8-.2-.3 0-.4.2-.6.2-.2.3-.4.4-.5.1-.2.2-.3.3-.5 0-.2 0-.4-.1-.5-.1-.1-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.2-.6.4-.2.3-.8.8-.8 2s.8 2.3.9 2.5c.1.2 1.6 2.4 3.8 3.4.5.2.9.4 1.2.5.5.1 1 .1 1.3.1.4 0 1.2-.2 1.4-.8.2-.6.2-1.1.2-1.2 0-.1 0-.2-.1-.2z"/>
+                </svg>
+              </div>
+              <div className="mt-2">
+                <p className="font-medium text-gray-800">WhatsApp</p>
+                <p className="text-sm text-gray-500">+1 214.677.6273</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
