@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
@@ -6,16 +8,6 @@
   --primary-pink: #ffb6c1;
   --secondary-pink: #ffc0cb;
   --accent-pink: #ff69b4;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary-pink: var(--primary-pink);
-  --color-secondary-pink: var(--secondary-pink);
-  --color-accent-pink: var(--accent-pink);
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-playfair);
 }
 
 body {
