@@ -425,7 +425,7 @@ export default function Home() {
               Photo Gallery
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              A showcase of our beautiful custom cakes, cupcakes, and cookies that have brought joy to countless celebrations.
+              A showcase of my beautiful custom cakes, cupcakes, and cookies that have brought joy to countless celebrations.
             </p>
           </div>
 
