@@ -11,6 +11,7 @@ export default function Home() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isReviewsLoading, setIsReviewsLoading] = useState<boolean>(true);
   const [reviewsError, setReviewsError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState<boolean>(false);
 
   // Structured data for SEO
   const structuredData = {
@@ -81,8 +82,15 @@ export default function Home() {
 
   const filteredImages = getFilteredImages();
 
+  // Set client flag to prevent hydration mismatch
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Fetch reviews via server proxy for resilience (permissions/CORS)
   useEffect(() => {
+    if (!isClient) return;
+    
     const fetchReviews = async () => {
       setIsReviewsLoading(true);
       setReviewsError(null);
@@ -106,7 +114,7 @@ export default function Home() {
     };
 
     fetchReviews();
-  }, []);
+  }, [isClient]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -524,7 +532,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLScPp0i5fmky2jCsq7ktJWUGWS742WJkuxoAwNfAbBnWHvjrEg/viewform?usp=header"
+                href="https://docs.google.com/forms/d/e/1FAIpQLScPp0i5fmky2jCsq7ktJWUGWS742WJkuxoAwNfAbBnWHvjrEg/viewform?fbzx=-6665254677785131024"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
@@ -535,16 +543,43 @@ export default function Home() {
           </div>
 
           {/* Reviews Display */}
-          {isReviewsLoading ? (
+          {!isClient ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+              <p className="mt-4 text-gray-600">Loading reviews...</p>
+            </div>
+          ) : isReviewsLoading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
               <p className="mt-4 text-gray-600">Loading reviews...</p>
             </div>
           ) : reviewsError ? (
             <div className="text-center py-12">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-                <p className="text-red-600">Unable to load reviews at this time.</p>
-                <p className="text-sm text-red-500 mt-2">{reviewsError}</p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto">
+                <div className="text-yellow-600 mb-4">
+                  <svg className="w-12 h-12 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <h3 className="font-semibold text-lg">Reviews Setup Required</h3>
+                </div>
+                <p className="text-gray-700 mb-4">
+                  To display customer reviews, the Google Form responses need to be made publicly accessible.
+                </p>
+                <div className="text-left bg-white p-4 rounded border text-sm text-gray-600">
+                  <p className="font-medium mb-2">To fix this:</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>Go to your <a href="https://docs.google.com/forms/d/1Gzxovv4vKZndwlz_jTYdxYGDMEmSERy_dTigT06Ug4k/edit#responses" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:underline">Google Form responses</a></li>
+                    <li>Click on the "Responses" tab</li>
+                    <li>Click the three dots menu (⋮) next to "Responses"</li>
+                    <li>Select "Create Spreadsheet" if not already created</li>
+                    <li>In the new spreadsheet, click "Share" button</li>
+                    <li>Change permissions to "Anyone with the link can view"</li>
+                    <li>Copy the spreadsheet ID from the URL and update the API</li>
+                  </ol>
+                </div>
+                <p className="text-sm text-gray-500 mt-4">
+                  Once set up, reviews will automatically appear here!
+                </p>
               </div>
             </div>
           ) : reviews.length > 0 ? (
