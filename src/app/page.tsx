@@ -61,17 +61,21 @@ export default function Home() {
   };
 
   // Define image categories (only 3 sections as requested)
-  const getImageCategory = (num: number): string => {
+  const getImageCategory = (num: number | string): string => {
+    if (typeof num === 'string') {
+      if (num === '23a') return 'birthday';
+      return 'birthday';
+    }
     if (num >= 1 && num <= 39) return 'birthday';
     if (num >= 40 && num <= 48) return 'special-design';
     if (num >= 60 && num <= 73) return 'cookies';
     return 'birthday';
   };
 
-  // Explicit image lists to avoid missing files (e.g., 8.jpg, 49-59 don't exist)
-  const birthdayImages = Array.from({ length: 39 }, (_, i) => i + 1).filter(n => n !== 8);
-  const specialDesignImages = Array.from({ length: 9 }, (_, i) => 40 + i);
-  const cookiesImages = Array.from({ length: 14 }, (_, i) => 60 + i);
+  // Explicit image lists based on actual files in cakes_images directory
+  const birthdayImages = [...Array.from({ length: 39 }, (_, i) => i + 1).filter(n => n !== 8), '23a']; // 1-39 (excluding 8) + 23a
+  const specialDesignImages = Array.from({ length: 9 }, (_, i) => 40 + i); // 40-48
+  const cookiesImages = Array.from({ length: 14 }, (_, i) => 60 + i); // 60-73
   const allImages = [...birthdayImages, ...specialDesignImages, ...cookiesImages];
 
   // Filter images based on selected category
