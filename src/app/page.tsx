@@ -61,7 +61,8 @@ export default function Home() {
   };
 
   // Define image categories (only 3 sections as requested)
-  const getImageCategory = (num: number): string => {
+  const getImageCategory = (num: number | string): string => {
+    if (typeof num === 'string') return 'birthday'; // Handle '31a' case
     if (num >= 1 && num <= 39) return 'birthday';
     if (num >= 40 && num <= 48) return 'special-design';
     if (num >= 60 && num <= 73) return 'cookies';
@@ -69,7 +70,7 @@ export default function Home() {
   };
 
   // Explicit image lists to avoid missing files (e.g., 8.jpg, 49-59 don't exist)
-  const birthdayImages = Array.from({ length: 39 }, (_, i) => i + 1).filter(n => n !== 8);
+  const birthdayImages = [...Array.from({ length: 39 }, (_, i) => i + 1).filter(n => n !== 8), '31a'];
   const specialDesignImages = Array.from({ length: 9 }, (_, i) => 40 + i);
   const cookiesImages = Array.from({ length: 14 }, (_, i) => 60 + i);
   const allImages = [...birthdayImages, ...specialDesignImages, ...cookiesImages];
@@ -87,7 +88,7 @@ export default function Home() {
     setIsClient(true);
   }, []);
 
-  // Fetch reviews via server proxy for resilience (permissions/CORS)
+  // Fetch reviews directly from Google Sheets (works with static export)
   useEffect(() => {
     if (!isClient) return;
     
@@ -95,11 +96,24 @@ export default function Home() {
       setIsReviewsLoading(true);
       setReviewsError(null);
       try {
-        const res = await fetch('/api/reviews', { cache: 'no-store' });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json?.error || 'Failed to load reviews');
-        const list = Array.isArray(json?.reviews) ? json.reviews : [];
-        const trimmed = list.map((r: Review) => ({
+        // Direct Google Sheets CSV export URL
+        const spreadsheetId = '12LAXz4XRCDLk7NbEMmWPxZtpoDa9wfDqm34FpwKkDYk';
+        const gid = '1898724537';
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
+        
+        const res = await fetch(csvUrl, { 
+          mode: 'cors',
+          cache: 'no-store' 
+        });
+        
+        if (!res.ok) {
+          throw new Error(`Failed to fetch reviews: ${res.status} ${res.statusText}`);
+        }
+        
+        const csvText = await res.text();
+        const reviews = parseCsvToReviews(csvText);
+        
+        const trimmed = reviews.map((r: Review) => ({
           ...r,
           name: r.name.length > 80 ? r.name.slice(0, 80).trim() + '…' : r.name,
           review: r.review.length > 600 ? r.review.slice(0, 600).trim() + '…' : r.review,
@@ -115,6 +129,59 @@ export default function Home() {
 
     fetchReviews();
   }, [isClient]);
+
+  // Helper function to parse CSV to reviews
+  const parseCsvToReviews = (csvText: string): Review[] => {
+    const lines = csvText.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return []; // Need at least header + 1 data row
+    
+    const headers = lines[0].split(',').map(h => h.toLowerCase().trim());
+    const findIndex = (c: string[]) => headers.findIndex((h) => c.some((n) => h.includes(n)));
+    const nameIdx = findIndex(['name', 'customer', 'author']);
+    const reviewIdx = findIndex(['review', 'testimonial', 'feedback', 'comment', 'message']);
+    const ratingIdx = findIndex(['rating', 'stars', 'score', 'satisfied', 'scale']);
+
+    const reviews: Review[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+      if (values.length < 2) continue;
+      
+      const name = sanitizeText(nameIdx >= 0 ? values[nameIdx] : values[0] || 'Anonymous');
+      const review = sanitizeText(reviewIdx >= 0 ? values[reviewIdx] : values[1] || '');
+      const ratingRaw = ratingIdx >= 0 ? values[ratingIdx] : undefined;
+      
+      let ratingNum: number | undefined;
+      if (ratingRaw) {
+        const parsed = parseFloat(ratingRaw);
+        ratingNum = Number.isFinite(parsed) ? parsed : undefined;
+      }
+      
+      if (name && review && !looksLikeCode(review)) {
+        reviews.push({ name, review, rating: clampRating(ratingNum) });
+      }
+    }
+    
+    return reviews.slice(0, 24);
+  };
+
+  // Helper functions
+  const sanitizeText = (input: string): string => {
+    if (!input) return '';
+    const withoutTags = input.replace(/<[^>]*>/g, '');
+    const withoutComments = withoutTags.replace(/\/\*[^]*?\*\/|\/\/[^\n]*$/gm, '');
+    return withoutComments.replace(/\s+/g, ' ').trim();
+  };
+
+  const looksLikeCode = (input: string): boolean => {
+    if (!input) return false;
+    const patterns = [/function\s+[\w$]+\s*\(/i, /document\./i, /window\./i, /=>/, /sourceMappingURL/i, /var\s+[\w$]+/i];
+    return input.length > 800 || patterns.some((p) => p.test(input));
+  };
+
+  const clampRating = (val: number | undefined): number | undefined => {
+    if (typeof val !== 'number' || Number.isNaN(val)) return undefined;
+    return Math.max(0, Math.min(5, Math.round(val)));
+  };
 
   return (
     <div className="min-h-screen bg-white">
