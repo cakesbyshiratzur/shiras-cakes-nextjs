@@ -83,59 +83,6 @@ export default function Home() {
 
   const filteredImages = getFilteredImages();
 
-  // Helper functions
-  const sanitizeText = (input: string): string => {
-    if (!input) return '';
-    const withoutTags = input.replace(/<[^>]*>/g, '');
-    const withoutComments = withoutTags.replace(/\/\*[^]*?\*\/|\/\/[^\n]*$/gm, '');
-    return withoutComments.replace(/\s+/g, ' ').trim();
-  };
-
-  const looksLikeCode = (input: string): boolean => {
-    if (!input) return false;
-    const patterns = [/function\s+[\w$]+\s*\(/i, /document\./i, /window\./i, /=>/, /sourceMappingURL/i, /var\s+[\w$]+/i];
-    return input.length > 800 || patterns.some((p) => p.test(input));
-  };
-
-  const clampRating = (val: number | undefined): number | undefined => {
-    if (typeof val !== 'number' || Number.isNaN(val)) return undefined;
-    return Math.max(0, Math.min(5, Math.round(val)));
-  };
-
-  // Helper function to parse CSV to reviews
-  const parseCsvToReviews = (csvText: string): Review[] => {
-    const lines = csvText.split('\n').filter(line => line.trim());
-    if (lines.length < 2) return []; // Need at least header + 1 data row
-    
-    const headers = lines[0].split(',').map(h => h.toLowerCase().trim());
-    const findIndex = (c: string[]) => headers.findIndex((h) => c.some((n) => h.includes(n)));
-    const nameIdx = findIndex(['name', 'customer', 'author']);
-    const reviewIdx = findIndex(['review', 'testimonial', 'feedback', 'comment', 'message']);
-    const ratingIdx = findIndex(['rating', 'stars', 'score', 'satisfied', 'scale']);
-
-    const reviews: Review[] = [];
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-      if (values.length < 2) continue;
-      
-      const name = sanitizeText(nameIdx >= 0 ? values[nameIdx] : values[0] || 'Anonymous');
-      const review = sanitizeText(reviewIdx >= 0 ? values[reviewIdx] : values[1] || '');
-      const ratingRaw = ratingIdx >= 0 ? values[ratingIdx] : undefined;
-      
-      let ratingNum: number | undefined;
-      if (ratingRaw) {
-        const parsed = parseFloat(ratingRaw);
-        ratingNum = Number.isFinite(parsed) ? parsed : undefined;
-      }
-      
-      if (name && review && !looksLikeCode(review)) {
-        reviews.push({ name, review, rating: clampRating(ratingNum) });
-      }
-    }
-    
-    return reviews.slice(0, 24);
-  };
-
   // Set client flag to prevent hydration mismatch
   useEffect(() => {
     setIsClient(true);
@@ -181,7 +128,60 @@ export default function Home() {
     };
 
     fetchReviews();
-  }, [isClient, parseCsvToReviews]);
+  }, [isClient]);
+
+  // Helper function to parse CSV to reviews
+  const parseCsvToReviews = (csvText: string): Review[] => {
+    const lines = csvText.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return []; // Need at least header + 1 data row
+    
+    const headers = lines[0].split(',').map(h => h.toLowerCase().trim());
+    const findIndex = (c: string[]) => headers.findIndex((h) => c.some((n) => h.includes(n)));
+    const nameIdx = findIndex(['name', 'customer', 'author']);
+    const reviewIdx = findIndex(['review', 'testimonial', 'feedback', 'comment', 'message']);
+    const ratingIdx = findIndex(['rating', 'stars', 'score', 'satisfied', 'scale']);
+
+    const reviews: Review[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+      if (values.length < 2) continue;
+      
+      const name = sanitizeText(nameIdx >= 0 ? values[nameIdx] : values[0] || 'Anonymous');
+      const review = sanitizeText(reviewIdx >= 0 ? values[reviewIdx] : values[1] || '');
+      const ratingRaw = ratingIdx >= 0 ? values[ratingIdx] : undefined;
+      
+      let ratingNum: number | undefined;
+      if (ratingRaw) {
+        const parsed = parseFloat(ratingRaw);
+        ratingNum = Number.isFinite(parsed) ? parsed : undefined;
+      }
+      
+      if (name && review && !looksLikeCode(review)) {
+        reviews.push({ name, review, rating: clampRating(ratingNum) });
+      }
+    }
+    
+    return reviews.slice(0, 24);
+  };
+
+  // Helper functions
+  const sanitizeText = (input: string): string => {
+    if (!input) return '';
+    const withoutTags = input.replace(/<[^>]*>/g, '');
+    const withoutComments = withoutTags.replace(/\/\*[^]*?\*\/|\/\/[^\n]*$/gm, '');
+    return withoutComments.replace(/\s+/g, ' ').trim();
+  };
+
+  const looksLikeCode = (input: string): boolean => {
+    if (!input) return false;
+    const patterns = [/function\s+[\w$]+\s*\(/i, /document\./i, /window\./i, /=>/, /sourceMappingURL/i, /var\s+[\w$]+/i];
+    return input.length > 800 || patterns.some((p) => p.test(input));
+  };
+
+  const clampRating = (val: number | undefined): number | undefined => {
+    if (typeof val !== 'number' || Number.isNaN(val)) return undefined;
+    return Math.max(0, Math.min(5, Math.round(val)));
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -636,11 +636,11 @@ export default function Home() {
                   <p className="font-medium mb-2">To fix this:</p>
                   <ol className="list-decimal list-inside space-y-1">
                     <li>Go to your <a href="https://docs.google.com/forms/d/1Gzxovv4vKZndwlz_jTYdxYGDMEmSERy_dTigT06Ug4k/edit#responses" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:underline">Google Form responses</a></li>
-                    <li>Click on the &quot;Responses&quot; tab</li>
-                    <li>Click the three dots menu (⋮) next to &quot;Responses&quot;</li>
-                    <li>Select &quot;Create Spreadsheet&quot; if not already created</li>
-                    <li>In the new spreadsheet, click &quot;Share&quot; button</li>
-                    <li>Change permissions to &quot;Anyone with the link can view&quot;</li>
+                    <li>Click on the "Responses" tab</li>
+                    <li>Click the three dots menu (⋮) next to "Responses"</li>
+                    <li>Select "Create Spreadsheet" if not already created</li>
+                    <li>In the new spreadsheet, click "Share" button</li>
+                    <li>Change permissions to "Anyone with the link can view"</li>
                     <li>Copy the spreadsheet ID from the URL and update the API</li>
                   </ol>
                 </div>
