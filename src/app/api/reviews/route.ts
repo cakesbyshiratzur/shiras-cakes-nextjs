@@ -7,7 +7,7 @@ export interface Review {
 }
 
 // Google Sheets API configuration
-const GOOGLE_SHEETS_ID = '12LAXz4XRCDLk7NbEMmWPxZtpoDa9wfDqm34FpwKkDYk';
+const GOOGLE_SHEETS_ID = '1WYTp1S9nkmDKVah-SKuulQIj45q8iJ6v0yJjQVa6gZc';
 const GOOGLE_SHEETS_RANGE = 'A:E'; // Columns: Timestamp, Rating, Feedback, Suggestions, Name
 
 export async function GET() {
@@ -43,13 +43,23 @@ export async function GET() {
     const data = await response.json();
     const rows = data.values || [];
 
+    console.log(`Raw Google Sheets data:`, JSON.stringify(rows, null, 2));
+
     // Skip header row and transform data
     // Columns: [Timestamp, Rating, Feedback, Suggestions, Name]
-    const reviews: Review[] = rows.slice(1).map((row: string[]) => ({
-      name: row[4] || 'Anonymous', // Name column (E)
-      review: row[2] || '', // Feedback column (C)
-      rating: row[1] ? parseInt(row[1]) : undefined // Rating column (B)
-    })).filter((review: Review) => review.review.trim() !== '');
+    const reviews: Review[] = rows.slice(1).map((row: string[], index: number) => {
+      const review = {
+        name: row[4] || 'Anonymous', // Name column (E)
+        review: row[2] || '', // Feedback column (C)
+        rating: row[1] ? parseInt(row[1]) : undefined // Rating column (B)
+      };
+      console.log(`Row ${index + 1}:`, JSON.stringify(review, null, 2));
+      return review;
+    }).filter((review: Review) => {
+      const hasReview = review.review.trim() !== '';
+      console.log(`Review "${review.name}" has content: ${hasReview}`);
+      return hasReview;
+    });
 
     console.log(`Fetched ${reviews.length} reviews from Google Sheets`);
     return NextResponse.json({ reviews });

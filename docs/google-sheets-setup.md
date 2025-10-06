@@ -39,7 +39,7 @@ In `src/app/api/reviews/route.ts`, uncomment the Google Sheets integration code 
 
 ### 4. Make Google Sheets Public
 
-1. Go to your [Google Form responses spreadsheet](https://docs.google.com/spreadsheets/d/12LAXz4XRCDLk7NbEMmWPxZtpoDa9wfDqm34FpwKkDYk/edit)
+1. Go to your [Google Form responses spreadsheet](https://docs.google.com/spreadsheets/d/1WYTp1S9nkmDKVah-SKuulQIj45q8iJ6v0yJjQVa6gZc/edit)
 2. Click "Share" button
 3. Change permissions to "Anyone with the link can view"
 4. Ensure the spreadsheet has columns: Timestamp, Rating, Feedback, Suggestions, Name
