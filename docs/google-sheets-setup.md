@@ -8,10 +8,11 @@ This document explains how to set up the Google Sheets integration for customer 
 
 The website now:
 - Has a working `/api/reviews` endpoint
-- Fetches reviews dynamically from the API
+- Fetches reviews dynamically from the correct Google Sheets
 - Shows loading states while fetching
 - Falls back to hardcoded reviews if the API fails
 - Displays error messages if there are issues
+- **Includes Orly Achkenazy's review**: "The cake was beautiful and yummy❤️"
 
 ## Setting Up Google Sheets Integration (Optional)
 
@@ -38,10 +39,10 @@ In `src/app/api/reviews/route.ts`, uncomment the Google Sheets integration code 
 
 ### 4. Make Google Sheets Public
 
-1. Go to your [Google Form responses spreadsheet](https://docs.google.com/spreadsheets/d/1WYTp1S9nkmDKVah-SKuulQIj45q8iJ6v0yJjQVa6gZc/edit)
+1. Go to your [Google Form responses spreadsheet](https://docs.google.com/spreadsheets/d/12LAXz4XRCDLk7NbEMmWPxZtpoDa9wfDqm34FpwKkDYk/edit)
 2. Click "Share" button
 3. Change permissions to "Anyone with the link can view"
-4. Ensure the spreadsheet has columns: Name, Review, Rating
+4. Ensure the spreadsheet has columns: Timestamp, Rating, Feedback, Suggestions, Name
 
 ## Testing
 
