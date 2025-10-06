@@ -7,7 +7,7 @@ export interface Review {
 }
 
 // Google Sheets API configuration
-const GOOGLE_SHEETS_ID = '1WYTp1S9nkmDKVah-SKuulQIj45q8iJ6v0yJjQVa6gZc';
+const GOOGLE_SHEETS_ID = '12LAXz4XRCDLk7NbEMmWPxZtpoDa9wfDqm34FpwKkDYk';
 const GOOGLE_SHEETS_RANGE = 'A:E'; // Columns: Timestamp, Rating, Feedback, Suggestions, Name
 
 export async function GET() {
