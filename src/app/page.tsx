@@ -8,36 +8,16 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   type Review = { name: string; review: string; rating?: number };
-  // Static reviews for static export compatibility
+  // Customer reviews from Google Sheets feedback form
   const [reviews] = useState<Review[]>([
     {
-      name: "Sarah M.",
-      review: "Absolutely amazing cake! Shira's attention to detail is incredible. The cake was not only beautiful but tasted delicious too. Will definitely order again!",
+      name: "Shiran Tesler-Greenberg",
+      review: "We needed a cake last minute and Shira delivered! The cake was beautiful, just like the inspo picture we sent her, and really delicious! The birthday girl was very happy 💟",
       rating: 5
     },
     {
-      name: "Michael R.",
-      review: "Professional service and outstanding quality. The custom cake exceeded our expectations. Perfect for our daughter's birthday party!",
-      rating: 5
-    },
-    {
-      name: "Jennifer L.",
-      review: "Shira is incredibly talented! The cake design was exactly what we envisioned. Great communication throughout the process. Highly recommend!",
-      rating: 5
-    },
-    {
-      name: "David K.",
-      review: "Outstanding work! The cake was a masterpiece and tasted incredible. Shira's creativity and skill are unmatched. Will definitely be a repeat customer!",
-      rating: 5
-    },
-    {
-      name: "Lisa P.",
-      review: "Perfect cake for our wedding! Shira understood our vision and delivered beyond our expectations. Beautiful design and delicious taste. Highly recommended!",
-      rating: 5
-    },
-    {
-      name: "Robert T.",
-      review: "Amazing experience from start to finish. The cake was gorgeous and tasted even better. Shira's professionalism and talent are top-notch!",
+      name: "Hadar Spiro",
+      review: "Thank you Shira Tzur for another amazing, creative workshop! 🎂",
       rating: 5
     }
   ]);
