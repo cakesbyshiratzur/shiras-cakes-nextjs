@@ -9,20 +9,9 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   type Review = { name: string; review: string; rating?: number };
   // Customer reviews from Google Sheets feedback form
-  const [reviews] = useState<Review[]>([
-    {
-      name: "Shiran Tesler-Greenberg",
-      review: "We needed a cake last minute and Shira delivered! The cake was beautiful, just like the inspo picture we sent her, and really delicious! The birthday girl was very happy 💟",
-      rating: 5
-    },
-    {
-      name: "Hadar Spiro",
-      review: "Thank you Shira Tzur for another amazing, creative workshop! 🎂",
-      rating: 5
-    }
-  ]);
-  const [isReviewsLoading] = useState<boolean>(false);
-  const [reviewsError] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isReviewsLoading, setIsReviewsLoading] = useState<boolean>(true);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState<boolean>(false);
 
   // Structured data for SEO
@@ -103,7 +92,43 @@ export default function Home() {
     setIsClient(true);
   }, []);
 
-  // Reviews are now static for static export compatibility
+  // Fetch reviews from API
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setIsReviewsLoading(true);
+        setReviewsError(null);
+        
+        const response = await fetch('/api/reviews');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch reviews: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setReviews(data.reviews || []);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+        setReviewsError('Failed to load reviews');
+        // Fallback to hardcoded reviews
+        setReviews([
+          {
+            name: "Shiran Tesler-Greenberg",
+            review: "We needed a cake last minute and Shira delivered! The cake was beautiful, just like the inspo picture we sent her, and really delicious! The birthday girl was very happy 💟",
+            rating: 5
+          },
+          {
+            name: "Hadar Spiro",
+            review: "Thank you Shira Tzur for another amazing, creative workshop! 🎂",
+            rating: 5
+          }
+        ]);
+      } finally {
+        setIsReviewsLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
